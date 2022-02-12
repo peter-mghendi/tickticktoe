@@ -13,7 +13,37 @@ public class PlayCommand : Command<PlayCommand.Settings>
         var board = new Board();
         var render = new Markup(board.Render()).Centered();
 
-        AnsiConsole.Write(render);
+        AnsiConsole.Live(render)
+            .Start(ctx => 
+            {
+                ctx.Refresh();
+                
+                Thread.Sleep(TimeSpan.FromSeconds(1));
+                board.Set(Row.Top, Column.Start, Value.Cross);
+                render = new Markup(board.Render()).Centered();
+                ctx.UpdateTarget(render);
+
+                Thread.Sleep(TimeSpan.FromSeconds(1));
+                board.Set(Row.Top, Column.End, Value.Nought);
+                render = new Markup(board.Render()).Centered();
+                ctx.UpdateTarget(render);
+
+                Thread.Sleep(TimeSpan.FromSeconds(1));
+                board.Set(Row.Middle, Column.Centre, Value.Cross);
+                render = new Markup(board.Render()).Centered();
+                ctx.UpdateTarget(render);
+
+                Thread.Sleep(TimeSpan.FromSeconds(1));
+                board.Set(Row.Bottom, Column.Start, Value.Nought);
+                render = new Markup(board.Render()).Centered();
+                ctx.UpdateTarget(render);
+
+                Thread.Sleep(TimeSpan.FromSeconds(1));
+                board.Set(Row.Bottom, Column.End, Value.Cross);
+                render = new Markup(board.Render()).Centered();
+                ctx.UpdateTarget(render);
+            });
+
         return 0;
     }
 }
