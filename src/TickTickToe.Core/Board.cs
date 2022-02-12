@@ -1,9 +1,9 @@
 ﻿using System.Linq;
-using static TickTickToe.Board.Row;
-using static TickTickToe.Board.Column;
-using static TickTickToe.Board.Value;
+using static TickTickToe.Core.Row;
+using static TickTickToe.Core.Column;
+using static TickTickToe.Core.Value;
 
-namespace TickTickToe.Board;
+namespace TickTickToe.Core;
 
 public record class Board
 {
@@ -70,6 +70,8 @@ public record class Board
 
     public void Reset() => Array.Clear(_values);
 
+    public Value? Get(Row row, Column column) => _values[(int)row, (int)column];
+    
     public void Set(Row row, Column column, Value value)
     {
         if (_values[(int)row, (int)column] is not null)

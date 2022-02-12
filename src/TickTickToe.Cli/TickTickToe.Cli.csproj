@@ -1,7 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="..\TickTickToe.Board\TickTickToe.Board.csproj" />
+    <ProjectReference Include="..\TickTickToe.Core\TickTickToe.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Spectre.Console" Version="0.43.0" />
   </ItemGroup>
 
   <PropertyGroup>

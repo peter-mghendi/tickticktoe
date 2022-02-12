@@ -1,4 +1,4 @@
-namespace TickTickToe.Board;
+namespace TickTickToe.Core;
 
 public enum Row
 {
