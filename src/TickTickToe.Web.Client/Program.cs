@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using MudBlazor.Services;
 using TickTickToe.Web.Client;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
@@ -14,5 +15,7 @@ builder.Services.AddHttpClient("TickTickToe.Web.ServerAPI", client => client.Bas
 builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("TickTickToe.Web.ServerAPI"));
 
 builder.Services.AddApiAuthorization();
+
+builder.Services.AddMudServices();
 
 await builder.Build().RunAsync();
