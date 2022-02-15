@@ -1,6 +1,10 @@
+using Duende.IdentityServer;
+using Duende.IdentityServer.Models;
+using Microsoft.AspNetCore.ApiAuthorization.IdentityServer;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
+using TickTickToe.Web.Server;
 using TickTickToe.Web.Server.Data;
 using TickTickToe.Web.Server.Models;
 
@@ -16,7 +20,31 @@ builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.R
     .AddEntityFrameworkStores<ApplicationDbContext>();
 
 builder.Services.AddIdentityServer()
-    .AddApiAuthorization<ApplicationUser, ApplicationDbContext>();
+    .AddApiAuthorization<ApplicationUser, ApplicationDbContext>(options =>
+    {
+        // options.Clients.AddNativeApp("TickTickToe.Cli", clientBuilder =>
+        // {
+        //     clientBuilder.WithClientId("TickTickToe.Cli");
+        //     clientBuilder.WithScopes(IdentityServerConstants.StandardScopes.OpenId,
+        //         IdentityServerConstants.StandardScopes.Profile, "TickTickToe.Web.ServerAPI");
+        //     clientBuilder.WithoutClientSecrets();
+        // });
+        options.Clients.Add(new()
+        {
+            ClientId = "TickTickToe.Cli",
+            
+            AllowedGrantTypes = GrantTypes.ClientCredentials,
+            ClientSecrets = { new Secret("secret".Sha256()) },
+
+            AllowedScopes = 
+            {
+                IdentityServerConstants.StandardScopes.OpenId,
+                IdentityServerConstants.StandardScopes.Profile,
+
+                "TickTickToe.Web.ServerAPI" 
+            },
+        });
+    });
 
 builder.Services.AddAuthentication()
     .AddIdentityServerJwt();
