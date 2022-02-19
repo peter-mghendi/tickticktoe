@@ -1,3 +1,4 @@
+using Blazored.SessionStorage;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
@@ -15,7 +16,7 @@ builder.Services.AddHttpClient("TickTickToe.Web.ServerAPI", client => client.Bas
 builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("TickTickToe.Web.ServerAPI"));
 
 builder.Services.AddApiAuthorization();
-
+builder.Services.AddBlazoredSessionStorage();
 builder.Services.AddMudServices();
 
 await builder.Build().RunAsync();

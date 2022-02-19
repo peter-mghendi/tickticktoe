@@ -1,11 +1,10 @@
 using Duende.IdentityServer;
 using Duende.IdentityServer.Models;
-using Microsoft.AspNetCore.ApiAuthorization.IdentityServer;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
-using TickTickToe.Web.Server;
 using TickTickToe.Web.Server.Data;
+using TickTickToe.Web.Server.Hubs;
 using TickTickToe.Web.Server.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -32,16 +31,16 @@ builder.Services.AddIdentityServer()
         options.Clients.Add(new()
         {
             ClientId = "TickTickToe.Cli",
-            
-            AllowedGrantTypes = GrantTypes.ClientCredentials,
-            ClientSecrets = { new Secret("secret".Sha256()) },
 
-            AllowedScopes = 
+            AllowedGrantTypes = GrantTypes.ClientCredentials,
+            ClientSecrets = {new Secret("secret".Sha256())},
+
+            AllowedScopes =
             {
                 IdentityServerConstants.StandardScopes.OpenId,
                 IdentityServerConstants.StandardScopes.Profile,
 
-                "TickTickToe.Web.ServerAPI" 
+                "TickTickToe.Web.ServerAPI"
             },
         });
     });
@@ -49,8 +48,15 @@ builder.Services.AddIdentityServer()
 builder.Services.AddAuthentication()
     .AddIdentityServerJwt();
 
+builder.Services.AddSignalR();
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
+
+builder.Services.AddResponseCompression(opts =>
+{
+    opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
+        new[] {"application/octet-stream"});
+});
 
 var app = builder.Build();
 
@@ -78,9 +84,9 @@ app.UseIdentityServer();
 app.UseAuthentication();
 app.UseAuthorization();
 
-
 app.MapRazorPages();
 app.MapControllers();
+app.MapHub<GameHub>("/gamehub");
 app.MapFallbackToFile("index.html");
 
 app.Run();

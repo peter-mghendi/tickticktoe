@@ -1,9 +1,113 @@
 ﻿@page "/play"
 
+@using Microsoft.AspNetCore.SignalR.Client
+@using Blazored.SessionStorage
 @using Microsoft.AspNetCore.Authorization
+@using System.Text.Json.Serialization
 
 @attribute [Authorize]
 
+@inject IAuthorizationService AuthorizationService
+@inject AuthenticationStateProvider Authenticator
+@inject NavigationManager Navigator
+@inject IConfiguration Config
+@inject ISessionStorageService SessionStorage
+@inject ISnackbar Snackbar
+
 <PageTitle>Play</PageTitle>
 
-<JoinUI />
+@if (_hubConnection?.State != HubConnectionState.Connected)
+{
+    <MudText Typo="Typo.h5" Class="pa-4 my-4">You are not connected to a server.</MudText>
+    <MudText Typo="Typo.h6" Class="pa-4 mb-4">If this message persists, reload this page to establish a connection.</MudText>
+}
+else if (_room is null)
+{
+    <JoinUI OnJoin="JoinRoom" OnCreate="CreateRoom" />
+}
+else
+{
+    <MudText Typo="Typo.h5" Class="pa-4 my-4">Playing the game now.</MudText>
+}
+
+@code
+{
+        // const string CookieKey = ".AspNetCore.Identity.Application";
+    // [Inject]
+    // public CookieService CookieService { get; set; }
+    private HubConnection? _hubConnection;
+    private Room? _room;
+    // private string? username;
+
+    private class Room
+    {
+        public string InviteLink => string.Empty;
+    }
+
+    private class Item
+    {
+        [JsonPropertyName("access_token")]
+        public string AccessToken { get; set; }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _hubConnection = new HubConnectionBuilder()
+            .WithUrl(Navigator.ToAbsoluteUri("/gamehub"), options =>
+            {
+                options.AccessTokenProvider = async () =>
+                {
+                    var item = await SessionStorage.GetItemAsync<Item>("oidc.user:https://localhost:7067:TickTickToe.Web.Client");
+                    return item.AccessToken;
+                };
+            })
+            .Build();
+        
+        await _hubConnection.StartAsync();
+    }
+    
+    // async Task Send(string message)
+    // {
+    //     if (_hubConnection is not null && _room is not null)
+    //     {
+    //         await _hubConnection.SendAsync("SendChat", _room.InviteLink, message);
+    //     }
+    // }
+
+    async Task CreateRoom(string password)
+    {
+        if (_hubConnection is not null)
+        {
+            await _hubConnection.SendAsync("CreateRoom", password);
+        }
+    }
+
+    async Task JoinRoom((string InviteLink, string Password) room)
+    {
+        if (_hubConnection is not null)
+        {
+            await _hubConnection.SendAsync("JoinRoom", room.InviteLink, room.Password);
+        }
+    }
+
+    // async Task LeaveRoom()
+    // {
+    //     if (_hubConnection is not null && _room is not null)
+    //     {
+    //         await _hubConnection.SendAsync("LeaveRoom", _room.InviteLink);
+    //     }
+    // }
+    //
+    // async Task StartGame()
+    // {
+    //     if (_hubConnection is not null && _room is not null)
+    //     {
+    //         await _hubConnection.SendAsync("StartGame", _room.InviteLink);
+    //     }
+    // }
+    //
+    // public async ValueTask DisposeAsync()
+    // {
+    //     if (_hubConnection != null) await _hubConnection.DisposeAsync();
+    // }
+}
