@@ -3,6 +3,7 @@ using Duende.IdentityServer.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using TickTickToe.Web.Server.Data;
 using TickTickToe.Web.Server.Hubs;
 using TickTickToe.Web.Server.Models;
@@ -10,9 +11,29 @@ using TickTickToe.Web.Server.Models;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+
+string connectionString;
+if (builder.Environment.IsDevelopment())
+    connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+else
+{
+    var databaseUri = new Uri(builder.Configuration[(string)"DATABASE_URL"]);
+    var userInfo = databaseUri.UserInfo.Split(':');
+    connectionString = new NpgsqlConnectionStringBuilder
+    {
+        Host = databaseUri.Host,
+        Port = databaseUri.Port,
+        Username = userInfo[0],
+        Password = userInfo[1],
+        Database = databaseUri.LocalPath.TrimStart('/'),
+        SslMode = SslMode.Prefer,
+        TrustServerCertificate = true
+    }.ToString();
+}
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlite(connectionString));
+    options.UseNpgsql(connectionString));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
