@@ -20,27 +20,27 @@ public class PlayCommand : Command<PlayCommand.Settings>
                 ctx.Refresh();
                 
                 Thread.Sleep(TimeSpan.FromSeconds(1));
-                grid.Set(Row.Top, Column.Start, Value.Cross);
+                grid.TopStart = CellValue.Cross;
                 render = new Markup(grid.Render()).Centered();
                 ctx.UpdateTarget(render);
 
                 Thread.Sleep(TimeSpan.FromSeconds(1));
-                grid.Set(Row.Top, Column.End, Value.Nought);
+                grid.TopEnd = CellValue.Nought;
                 render = new Markup(grid.Render()).Centered();
                 ctx.UpdateTarget(render);
 
                 Thread.Sleep(TimeSpan.FromSeconds(1));
-                grid.Set(Row.Middle, Column.Centre, Value.Cross);
+                grid.MiddleCenter = CellValue.Cross;
                 render = new Markup(grid.Render()).Centered();
                 ctx.UpdateTarget(render);
 
                 Thread.Sleep(TimeSpan.FromSeconds(1));
-                grid.Set(Row.Bottom, Column.Start, Value.Nought);
+                grid.BottomStart = CellValue.Nought;
                 render = new Markup(grid.Render()).Centered();
                 ctx.UpdateTarget(render);
 
                 Thread.Sleep(TimeSpan.FromSeconds(1));
-                grid.Set(Row.Bottom, Column.End, Value.Cross);
+                grid.BottomEnd = CellValue.Cross;
                 render = new Markup(grid.Render()).Centered();
                 ctx.UpdateTarget(render);
             });

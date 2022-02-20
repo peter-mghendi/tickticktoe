@@ -1,34 +1,34 @@
 @inject ISnackbar Snackbar
 
-<MudText Typo="Typo.h5" Class="pa-4 my-4">Join or create a game room to play.</MudText>
+<MudText Typo="Typo.h5" Class="pa-4 my-4">Join or create a game to play.</MudText>
 
 <MudPaper Class="pa-4 mb-4">
     <MudTextField @bind-Value="_inviteLink" Label="Invite Link" Variant="Variant.Filled" Class="mb-4"></MudTextField>
     <MudTextField @bind-Value="_invitePassword" Label="Password (If Applicable)" Variant="Variant.Filled" Class="mb-4"></MudTextField>
-    <MudButton Disabled="@Loading" OnClick="JoinRoom" Variant="Variant.Filled" Color="Color.Primary">
+    <MudButton Disabled="@Loading" OnClick="JoinGame" Variant="Variant.Filled" Color="Color.Primary">
         @if (_joining)
         {
             <MudProgressCircular Class="ms-n1" Color="Color.Primary" Size="Size.Small" Indeterminate="true"/>
-            <MudText Class="ms-2">Joining Room</MudText>
+            <MudText Class="ms-2">Joining Game</MudText>
         }
         else
         {
-            <MudText>Join Room</MudText>
+            <MudText>Join Game</MudText>
         }
     </MudButton>
 </MudPaper>
 
 <MudPaper Class="pa-4 mb-4">
     <MudTextField @bind-Value="_createPassword" Label="Password (Optional)" Variant="Variant.Filled" Class="mb-4"></MudTextField>
-    <MudButton Disabled="@Loading" OnClick="CreateRoom" Variant="Variant.Filled">
+    <MudButton Disabled="@Loading" OnClick="CreateGame" Variant="Variant.Filled">
         @if (_creating)
         {
             <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
-            <MudText Class="ms-2">Creating Room</MudText>
+            <MudText Class="ms-2">Creating Game</MudText>
         }
         else
         {
-            <MudText>Create Room</MudText>
+            <MudText>Create Game</MudText>
         }
     </MudButton>
 </MudPaper>
@@ -48,7 +48,7 @@
     private bool _creating = false;
     private bool Loading => _joining || _creating;
 
-    private async Task JoinRoom()
+    private async Task JoinGame()
     {
         _joining = true;
         if (string.IsNullOrWhiteSpace(_inviteLink))
@@ -61,7 +61,7 @@
         await OnJoin.InvokeAsync((_inviteLink  ?? string.Empty, _invitePassword  ?? string.Empty));
     }
 
-    private async Task CreateRoom()
+    private async Task CreateGame()
     { 
         _creating = true;
         await OnCreate.InvokeAsync(_createPassword);

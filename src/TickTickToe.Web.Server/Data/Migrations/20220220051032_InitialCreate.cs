@@ -217,13 +217,13 @@ namespace TickTickToe.Web.Server.Data.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    PasswordHash = table.Column<byte[]>(type: "bytea", nullable: false),
-                    PasswordSalt = table.Column<byte[]>(type: "bytea", nullable: false),
+                    Grid = table.Column<string>(type: "text", nullable: false),
+                    PasswordHash = table.Column<byte[]>(type: "bytea", nullable: true),
+                    PasswordSalt = table.Column<byte[]>(type: "bytea", nullable: true),
                     PlayerOneId = table.Column<string>(type: "text", nullable: false),
-                    PlayerTwoId = table.Column<string>(type: "text", nullable: false),
-                    WinnerId = table.Column<string>(type: "text", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    Grid = table.Column<string>(type: "text", nullable: false)
+                    PlayerTwoId = table.Column<string>(type: "text", nullable: true),
+                    WinnerId = table.Column<string>(type: "text", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -238,14 +238,12 @@ namespace TickTickToe.Web.Server.Data.Migrations
                         name: "FK_Games_AspNetUsers_PlayerTwoId",
                         column: x => x.PlayerTwoId,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Games_AspNetUsers_WinnerId",
                         column: x => x.WinnerId,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(

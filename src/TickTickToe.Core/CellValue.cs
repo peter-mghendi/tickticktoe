@@ -1,7 +1,8 @@
 namespace TickTickToe.Core;
 
-public enum Value
+public enum CellValue
 {
+    Empty,
     Cross,
     Nought
 }

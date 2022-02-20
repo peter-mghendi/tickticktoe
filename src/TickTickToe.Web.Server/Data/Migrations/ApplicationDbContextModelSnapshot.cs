@@ -407,11 +407,9 @@ namespace TickTickToe.Web.Server.Data.Migrations
                         .HasColumnType("text");
 
                     b.Property<byte[]>("PasswordHash")
-                        .IsRequired()
                         .HasColumnType("bytea");
 
                     b.Property<byte[]>("PasswordSalt")
-                        .IsRequired()
                         .HasColumnType("bytea");
 
                     b.Property<string>("PlayerOneId")
@@ -419,11 +417,9 @@ namespace TickTickToe.Web.Server.Data.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("PlayerTwoId")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("WinnerId")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");
@@ -540,15 +536,11 @@ namespace TickTickToe.Web.Server.Data.Migrations
 
                     b.HasOne("TickTickToe.Web.Server.Models.ApplicationUser", "PlayerTwo")
                         .WithMany("InvitedGames")
-                        .HasForeignKey("PlayerTwoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("PlayerTwoId");
 
                     b.HasOne("TickTickToe.Web.Server.Models.ApplicationUser", "Winner")
                         .WithMany("WonGames")
-                        .HasForeignKey("WinnerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("WinnerId");
 
                     b.Navigation("PlayerOne");
 

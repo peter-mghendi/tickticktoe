@@ -45,15 +45,12 @@ static async Task CallServiceAsync(string token)
     Console.WriteLine(indented);
 }
 
+var app = new CommandApp();
+app.Configure(config =>
+{
+     config.PropagateExceptions();
+    config.AddCommand<PlayCommand>("play");
+    config.AddCommand<StatsCommand>("stats");
+});
 
-////////
-
-// var app = new CommandApp();
-// app.Configure(config =>
-// {
-//      config.PropagateExceptions();
-//     config.AddCommand<PlayCommand>("play");
-//     config.AddCommand<StatsCommand>("stats");
-// });
-
-// return app.Run(args);
+return app.Run(args);

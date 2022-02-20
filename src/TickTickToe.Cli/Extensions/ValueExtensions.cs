@@ -1,15 +1,15 @@
 using System.Text;
 using TickTickToe.Core;
-using static TickTickToe.Core.Value;
+using static TickTickToe.Core.CellValue;
 
 namespace TickTickToe.Cli.Extensions;
 
 public static class ValueExtensions
 {
-    public static char AsText(this Value? value) => value switch
+    public static char AsText(this CellValue? value) => value switch
     {
         Cross => 'X',
         Nought => 'O',
-        _ => ' '
+        Empty or _ => ' '
     };
 }

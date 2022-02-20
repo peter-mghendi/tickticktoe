@@ -7,12 +7,11 @@ using Npgsql;
 using TickTickToe.Web.Server.Data;
 using TickTickToe.Web.Server.Hubs;
 using TickTickToe.Web.Server.Models;
+using TickTickToe.Web.Server.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
-
 string connectionString;
 if (builder.Environment.IsDevelopment())
     connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -33,7 +32,9 @@ else
 }
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(connectionString));
+{
+    options.UseNpgsql(connectionString);
+});
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
@@ -72,6 +73,7 @@ builder.Services.AddAuthentication()
 builder.Services.AddSignalR();
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
+builder.Services.AddSingleton<IPasswordService, PasswordService>();
 
 builder.Services.AddResponseCompression(opts =>
 {
