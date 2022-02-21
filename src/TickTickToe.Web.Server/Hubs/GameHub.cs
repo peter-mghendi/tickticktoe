@@ -2,6 +2,9 @@ using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.AspNetCore.SignalR.Protocol;
+using Microsoft.EntityFrameworkCore;
+using TickTickToe.Core;
 using TickTickToe.Core.Models;
 using TickTickToe.Web.Server.Data;
 using TickTickToe.Web.Server.Models;
@@ -52,10 +55,10 @@ public partial class GameHub : Hub<GameHub.IGameClient>
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task JoinGame(string gameId, string? password)
+    public async Task JoinGame(Guid gameId, string? password)
     {
         var user = await _userManager.FindByIdAsync(Context.UserIdentifier);
-        var game = await _dbContext.Games.FindAsync(Guid.Parse(gameId)); // Check for valid GUID
+        var game = await _dbContext.Games.FindAsync(gameId);
         
         // Check that the game exists
         if (game is null)
@@ -120,5 +123,71 @@ public partial class GameHub : Hub<GameHub.IGameClient>
         await Groups.AddToGroupAsync(Context.ConnectionId, game.Id.ToString());
         await Clients.Caller.AddAsPlayerTwo(game.PlayerOne.Email, game.Id);
         await _dbContext.SaveChangesAsync();
+    }
+
+    public async Task PerformTurn(Guid gameId, Row row, Column column, CellValue value)
+    {
+        // We hope my logic is sound and this user and game exist
+        var user = await _userManager.FindByIdAsync(Context.UserIdentifier);
+        var game = (await _dbContext.Games.FindAsync(gameId))!;
+
+        // Stop here to explicitly load players and moves 
+        await _dbContext.Entry(game).Reference(g => g.PlayerOne).LoadAsync();
+        await _dbContext.Entry(game).Reference(g => g.PlayerTwo).LoadAsync();
+        await _dbContext.Entry(game)
+            .Collection(g => g.Moves)
+            .Query()
+            .Include(m => m.Player)
+            .LoadAsync();
+
+        // Check turn
+        if (!IsValidTurn(game, user))
+        {
+            var message = new SystemMessage
+            {
+                Text = "It is not your turn!",
+                Severity = SystemMessage.MessageSeverity.Error
+            };
+            await Clients.Caller.ReceiveSystemMessage(message);
+            return;
+        }
+
+        // Perform turn
+        var move = new Move
+        {
+            Row = row,
+            Column = column,
+            Player = user,
+        };
+
+        game.Grid.Set(row, column, value);
+        game.Moves.Add(move);
+        await Clients.Group(gameId.ToString()).SetGridValue(row, column, value);
+        await _dbContext.SaveChangesAsync();
+    }
+
+    private bool IsValidTurn(Game game, ApplicationUser currentUser)
+    {
+        if (game.Moves.Count == 0)
+        {
+            // Player one's turn
+            if (currentUser.Id == game.PlayerTwo!.Id) return false;
+            return true;
+        }
+        
+        // HACK: Reorder moves: Find out why they're coming out of the db in random order
+        var moves = game.Moves.OrderBy(g => g.Id).ToList();
+        if (moves[^1].Player.Id == game.PlayerTwo!.Id)
+        {
+            // Player one's turn
+            if (currentUser.Id == game.PlayerTwo!.Id) return false;
+        }
+        else
+        {
+            // Player two's turn
+            if (currentUser.Id == game.PlayerOne.Id) return false;
+        }
+
+        return true;
     }
 }

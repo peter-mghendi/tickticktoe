@@ -1,12 +1,11 @@
 ﻿@page "/play"
-
 @using Microsoft.AspNetCore.SignalR.Client
-@using Blazored.SessionStorage
 @using Microsoft.AspNetCore.Authorization
-@using System.Text.Json.Serialization
+@using Blazored.SessionStorage
 @using TickTickToe.Core
 @using TickTickToe.Core.Models
 @using Row = TickTickToe.Core.Row
+@using System.Text.Json.Serialization
 
 @attribute [Authorize]
 
@@ -63,11 +62,7 @@ else
 {
     private HubConnection? _hubConnection;
     private Guid _gameId;
-    private Grid _grid = new()
-    {
-        TopStart = CellValue.Cross,
-        MiddleCenter = CellValue.Nought
-    };
+    private Grid _grid = new();
 
     private string? _userId;
     private string? _playerOneId;
@@ -102,22 +97,22 @@ else
 
         _hubConnection.On<Guid>("AddAsPlayerOne", gameId =>
         {
-            this._playerOneId = _userId;
-            this._gameId = gameId;
+            _playerOneId = _userId;
+            _gameId = gameId;
             StateHasChanged();
         });
 
         _hubConnection.On<string, Guid>("AddAsPlayerTwo", (playerOneId, gameId) =>
         {
-            this._playerOneId = playerOneId;
-            this._playerTwoId = _userId;
-            this._gameId = gameId;
+            _playerOneId = playerOneId;
+            _playerTwoId = _userId;
+            _gameId = gameId;
             StateHasChanged();
         });
 
         _hubConnection.On<string>("AddPlayerTwo", userId =>
         {
-            this._playerTwoId = userId;
+            _playerTwoId = userId;
             Snackbar.Add("The game has started! It is your turn.", Severity.Info);
             StateHasChanged();
         });
@@ -133,6 +128,12 @@ else
                 _ => throw new ArgumentException("Invalid message type.", nameof(SystemMessage.MessageSeverity))
                 };
             Snackbar.Add(message.Text, severity);
+        });
+        
+        _hubConnection.On<Row, Column, CellValue>("SetGridValue", (row, column, value) =>
+        {
+            _grid.Set(row, column, value);
+            StateHasChanged();
         });
 
         await _hubConnection.StartAsync();
@@ -154,7 +155,7 @@ else
         }
     }
 
-    async Task JoinGame((string InviteLink, string Password) game)
+    async Task JoinGame((Guid InviteLink, string Password) game)
     {
         if (_hubConnection is not null)
         {
@@ -164,13 +165,10 @@ else
 
     async Task PerformTurn((Row Row, Column Column) cell)
     {
-        var row = cell.Row.ToString().ToLower();
-        var column = cell.Column.ToString().ToLower();
-        var value = _currentPlayer.ToString().ToLower();
-        Snackbar.Add($"Setting {row} {column} cell to {value}", Severity.Info);
-        await Task.Delay(TimeSpan.FromSeconds(1)); // TODO: Actually make the SignalR invocation
-        _grid.Set(cell.Row, cell.Column, _currentPlayer);
-        StateHasChanged();
+        if (_hubConnection is not null)
+        {
+            await _hubConnection.SendAsync("PerformTurn", _gameId, cell.Row, cell.Column, _currentPlayer);
+        }
     }
 
     // async Task LeaveGame()
@@ -178,14 +176,6 @@ else
     //     if (_hubConnection is not null && _game is not null)
     //     {
     //         await _hubConnection.SendAsync("LeaveGame", _game.InviteLink);
-    //     }
-    // }
-    //
-    // async Task StartGame()
-    // {
-    //     if (_hubConnection is not null && _game is not null)
-    //     {
-    //         await _hubConnection.SendAsync("StartGame", _game.InviteLink);
     //     }
     // }
     //

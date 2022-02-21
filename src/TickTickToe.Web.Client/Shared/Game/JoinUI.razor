@@ -35,7 +35,7 @@
 
 @code {
     [Parameter]
-    public EventCallback<(string InviteLink, string Password)> OnJoin { get; set; }
+    public EventCallback<(Guid GameId, string Password)> OnJoin { get; set; }
 
     [Parameter]
     public EventCallback<string> OnCreate { get; set; }
@@ -58,7 +58,14 @@
             return;
         }
         
-        await OnJoin.InvokeAsync((_inviteLink  ?? string.Empty, _invitePassword  ?? string.Empty));
+        if (!Guid.TryParse(_inviteLink, out var gameId))
+        {
+            _joining = false;
+            Snackbar.Add("Invalid invite link.", Severity.Error);
+            return;
+        }
+        
+        await OnJoin.InvokeAsync((gameId, _invitePassword  ?? string.Empty));
     }
 
     private async Task CreateGame()
