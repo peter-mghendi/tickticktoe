@@ -1,11 +1,12 @@
 @using TickTickToe.Core
 @using TickTickToe.Web.Client.Extensions
+@using Row = TickTickToe.Core.Row
 
 
 <MudPaper Class="d-flex align-center justify-center" Style="aspect-ratio: 1">
     @if (Value is CellValue.Empty)
     {
-        <MudButton Variant="Variant.Text" Class="grey-text" Style="width: 100%; height: 100%;">
+        <MudButton Variant="Variant.Text" Class="grey-text" Style="width: 100%; height: 100%;" OnClick="OnButtonClicked">
             <MudIcon Icon="@(CurrentPlayer.AsIcon())" Title="Click to play" />
         </MudButton>
     }
@@ -22,6 +23,14 @@
 
     [Parameter]
     public CellValue CurrentPlayer { get; set; }
+    
+    [Parameter]
+    public (Row, Column) Cell { get; set;  }
+    
+    [Parameter]
+    public EventCallback<(Row, Column)> OnClick { get; set; }
+    
+    private async Task OnButtonClicked() => await OnClick.InvokeAsync(Cell);
 
     private string CellColor => Value switch
     {

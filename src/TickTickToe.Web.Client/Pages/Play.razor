@@ -54,7 +54,7 @@ else
     @if (_playerTwoId is not null)
     {
         <MudContainer MaxWidth="MaxWidth.ExtraSmall">
-            <GridComponent Grid="_grid" CurrentPlayer="_currentPlayer"/>
+            <GridComponent Grid="_grid" CurrentPlayer="_currentPlayer" OnCellSelected="PerformTurn"/>
         </MudContainer>
     }
 }
@@ -160,6 +160,17 @@ else
         {
             await _hubConnection.SendAsync("JoinGame", game.InviteLink, game.Password);
         }
+    }
+
+    async Task PerformTurn((Row Row, Column Column) cell)
+    {
+        var row = cell.Row.ToString().ToLower();
+        var column = cell.Column.ToString().ToLower();
+        var value = _currentPlayer.ToString().ToLower();
+        Snackbar.Add($"Setting {row} {column} cell to {value}", Severity.Info);
+        await Task.Delay(TimeSpan.FromSeconds(1)); // TODO: Actually make the SignalR invocation
+        _grid.Set(cell.Row, cell.Column, _currentPlayer);
+        StateHasChanged();
     }
 
     // async Task LeaveGame()
