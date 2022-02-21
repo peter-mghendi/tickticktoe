@@ -5,6 +5,7 @@
 @using Microsoft.AspNetCore.Authorization
 @using System.Text.Json.Serialization
 @using TickTickToe.Core
+@using TickTickToe.Core.Models
 @using Row = TickTickToe.Core.Row
 
 @attribute [Authorize]
@@ -29,22 +30,33 @@ else if (_gameId == Guid.Empty)
 }
 else
 {
-    <MudText Typo="Typo.h5" Class="pa-4 my-4">Playing game @(_gameId.ToString()).</MudText>
-    <MudText Typo="Typo.h5" Class="pa-4 my-4">I am @_userId.</MudText>
-    <MudText Typo="Typo.h5" Class="pa-4 my-4">Playing X, we have @_playerOneId</MudText>
+    <MudGrid Class="my-8" Spacing="2">
+        <MudItem xs="12">
+            <MudPaper Class="d-flex flex-column align-center justify-center mud-width-full py-4">
+                <MudText Typo="Typo.h4" Class="black-text">Tick!Tick!Toe!</MudText>
+                <MudText Typo="Typo.h6" Class="grey-text">Game #@(_gameId.ToString())</MudText>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="6">
+            <MudPaper Class="d-flex flex-column align-center justify-center mud-width-full py-4">
+                <MudIcon Icon="@Icons.Outlined.Clear" Title="Cross" Class="red-text" Size="Size.Large"/>
+                <MudText Typo="Typo.body1" Class="grey-text">@_playerOneId</MudText>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="6">
+            <MudPaper Class="d-flex flex-column align-center justify-center mud-width-full py-4">
+                <MudIcon Icon="@Icons.Outlined.Circle" Title="Nought" Class="black-text" Size="Size.Large"/>
+                <MudText Typo="Typo.body1" Class="grey-text">@(_playerTwoId ?? "Waiting...")</MudText>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
 
-    @if (_playerTwoId is null)
+    @if (_playerTwoId is not null)
     {
-        <MudText Typo="Typo.h5" Class="pa-4 my-4">Waiting for player two...</MudText>
+        <MudContainer MaxWidth="MaxWidth.ExtraSmall">
+            <GridComponent Grid="_grid" CurrentPlayer="_currentPlayer"/>
+        </MudContainer>
     }
-    else
-    {
-        <MudText Typo="Typo.h5" Class="pa-4 my-4">Playing O is @_playerTwoId.</MudText>
-    }
-
-    <MudContainer MaxWidth="MaxWidth.ExtraSmall">
-        <GridComponent Grid="_grid" CurrentPlayer="_currentPlayer"/>
-    </MudContainer>
 }
 
 @code
@@ -106,7 +118,21 @@ else
         _hubConnection.On<string>("AddPlayerTwo", userId =>
         {
             this._playerTwoId = userId;
+            Snackbar.Add("The game has started! It is your turn.", Severity.Info);
             StateHasChanged();
+        });
+        
+        _hubConnection.On<SystemMessage>("ReceiveSystemMessage", message =>
+        {
+            var severity = message.Severity switch
+            {
+                SystemMessage.MessageSeverity.Error => Severity.Error,
+                SystemMessage.MessageSeverity.Info => Severity.Info,
+                SystemMessage.MessageSeverity.Success => Severity.Success,
+                SystemMessage.MessageSeverity.Warning => Severity.Warning,
+                _ => throw new ArgumentException("Invalid message type.", nameof(SystemMessage.MessageSeverity))
+                };
+            Snackbar.Add(message.Text, severity);
         });
 
         await _hubConnection.StartAsync();

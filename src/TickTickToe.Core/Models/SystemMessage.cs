@@ -1,4 +1,4 @@
-namespace TickTickToe.Web.Server.Models;
+namespace TickTickToe.Core.Models;
 
 public record SystemMessage
 {

@@ -1,3 +1,4 @@
+using TickTickToe.Core.Models;
 using TickTickToe.Web.Server.Models;
 
 namespace TickTickToe.Web.Server.Hubs;

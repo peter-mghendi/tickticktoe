@@ -2,6 +2,7 @@ using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.SignalR;
+using TickTickToe.Core.Models;
 using TickTickToe.Web.Server.Data;
 using TickTickToe.Web.Server.Models;
 using TickTickToe.Web.Server.Services;
