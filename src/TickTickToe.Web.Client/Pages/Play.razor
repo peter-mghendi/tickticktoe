@@ -4,6 +4,8 @@
 @using Blazored.SessionStorage
 @using Microsoft.AspNetCore.Authorization
 @using System.Text.Json.Serialization
+@using TickTickToe.Core
+@using Row = TickTickToe.Core.Row
 
 @attribute [Authorize]
 
@@ -23,31 +25,43 @@
 }
 else if (_gameId == Guid.Empty)
 {
-    <JoinUI OnJoin="JoinGame" OnCreate="CreateGame" />
+    <JoinUI OnJoin="JoinGame" OnCreate="CreateGame"/>
 }
 else
 {
     <MudText Typo="Typo.h5" Class="pa-4 my-4">Playing game @(_gameId.ToString()).</MudText>
     <MudText Typo="Typo.h5" Class="pa-4 my-4">I am @_userId.</MudText>
     <MudText Typo="Typo.h5" Class="pa-4 my-4">Playing X, we have @_playerOneId</MudText>
-    
-    @if (_playerTwoId is not null)
-    {
-        <MudText Typo="Typo.h5" Class="pa-4 my-4">Playing O is @_playerTwoId.</MudText>
-    }
-    else
+
+    @if (_playerTwoId is null)
     {
         <MudText Typo="Typo.h5" Class="pa-4 my-4">Waiting for player two...</MudText>
     }
+    else
+    {
+        <MudText Typo="Typo.h5" Class="pa-4 my-4">Playing O is @_playerTwoId.</MudText>
+    }
+
+    <MudContainer MaxWidth="MaxWidth.ExtraSmall">
+        <GridComponent Grid="_grid" CurrentPlayer="_currentPlayer"/>
+    </MudContainer>
 }
 
 @code
 {
     private HubConnection? _hubConnection;
     private Guid _gameId;
+    private Grid _grid = new()
+    {
+        TopStart = CellValue.Cross,
+        MiddleCenter = CellValue.Nought
+    };
+
     private string? _userId;
-    private string? _playerOneId;    
+    private string? _playerOneId;
     private string? _playerTwoId;
+
+    private CellValue _currentPlayer => _userId == _playerOneId ? CellValue.Cross : CellValue.Nought; 
 
     private class Item
     {
@@ -60,27 +74,27 @@ else
     // Get username from AuthenticationStateProvider
         var authState = await Authenticator.GetAuthenticationStateAsync();
         _userId = authState?.User.Identity?.Name;
-        
+
         _hubConnection = new HubConnectionBuilder()
             .WithUrl(Navigator.ToAbsoluteUri("/gamehub"), options =>
             {
                 options.AccessTokenProvider = async () =>
                 {
-                    // TODO: Don't hard-code this.
+    // TODO: Don't hard-code this.
                     var key = "oidc.user:https://localhost:7067:TickTickToe.Web.Client";
                     var item = await SessionStorage.GetItemAsync<Item>(key);
                     return item.AccessToken;
                 };
             })
             .Build();
-        
+
         _hubConnection.On<Guid>("AddAsPlayerOne", gameId =>
         {
             this._playerOneId = _userId;
             this._gameId = gameId;
             StateHasChanged();
         });
-        
+
         _hubConnection.On<string, Guid>("AddAsPlayerTwo", (playerOneId, gameId) =>
         {
             this._playerOneId = playerOneId;
@@ -88,7 +102,7 @@ else
             this._gameId = gameId;
             StateHasChanged();
         });
-        
+
         _hubConnection.On<string>("AddPlayerTwo", userId =>
         {
             this._playerTwoId = userId;
@@ -97,7 +111,7 @@ else
 
         await _hubConnection.StartAsync();
     }
-    
+
     // async Task Send(string message)
     // {
     //     if (_hubConnection is not null && _game is not null)
@@ -143,3 +157,4 @@ else
     //     if (_hubConnection != null) await _hubConnection.DisposeAsync();
     // }
 }
+

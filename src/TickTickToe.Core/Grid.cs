@@ -124,7 +124,7 @@ public record class Grid
 
     public void Reset() => Array.Clear(_cells);
 
-    public CellValue? Get(Row row, Column column) => _cells[(int) row, (int) column];
+    public CellValue Get(Row row, Column column) => _cells[(int) row, (int) column];
 
     public void Set(Row row, Column column, CellValue cellValue)
     {
@@ -137,7 +137,7 @@ public record class Grid
     }
 
     // TODO: Redo
-    private static bool EqualAndNotNull(params CellValue?[] values)
+    private static bool EqualAndNotNull(params CellValue[] values)
     {
         // Early exit
         if (values.Length <= 1) return true;
@@ -145,8 +145,8 @@ public record class Grid
         // Iterate
         for (int i = 1; i < values.Length; i++)
         {
-            if (values[i] is null) return false;
-            if (values[i - 1] is null) return false;
+            if (values[i] is Empty) return false;
+            if (values[i - 1] is Empty) return false;
             if (values[i] != values[i - 1]) return false;
         }
 

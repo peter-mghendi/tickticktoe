@@ -4,9 +4,9 @@ using static TickTickToe.Core.CellValue;
 
 namespace TickTickToe.Cli.Extensions;
 
-public static class ValueExtensions
+public static class CellValueExtensions
 {
-    public static char AsText(this CellValue? value) => value switch
+    public static char AsText(this CellValue value) => value switch
     {
         Cross => 'X',
         Nought => 'O',
