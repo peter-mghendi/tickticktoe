@@ -12,7 +12,7 @@ using TickTickToe.Web.Server.Data;
 namespace TickTickToe.Web.Server.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20220220051032_InitialCreate")]
+    [Migration("20220222120250_InitialCreate")]
     partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -365,36 +365,6 @@ namespace TickTickToe.Web.Server.Data.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
-            modelBuilder.Entity("TickTickToe.Web.Server.Models.Chat", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<Guid?>("GameId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("SenderId")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("SentAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Text")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("GameId");
-
-                    b.HasIndex("SenderId");
-
-                    b.ToTable("Chats");
-                });
-
             modelBuilder.Entity("TickTickToe.Web.Server.Models.Game", b =>
                 {
                     b.Property<Guid>("Id")
@@ -515,19 +485,6 @@ namespace TickTickToe.Web.Server.Data.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("TickTickToe.Web.Server.Models.Chat", b =>
-                {
-                    b.HasOne("TickTickToe.Web.Server.Models.Game", null)
-                        .WithMany("Chats")
-                        .HasForeignKey("GameId");
-
-                    b.HasOne("TickTickToe.Web.Server.Models.ApplicationUser", "Sender")
-                        .WithMany()
-                        .HasForeignKey("SenderId");
-
-                    b.Navigation("Sender");
-                });
-
             modelBuilder.Entity("TickTickToe.Web.Server.Models.Game", b =>
                 {
                     b.HasOne("TickTickToe.Web.Server.Models.ApplicationUser", "PlayerOne")
@@ -579,8 +536,6 @@ namespace TickTickToe.Web.Server.Data.Migrations
 
             modelBuilder.Entity("TickTickToe.Web.Server.Models.Game", b =>
                 {
-                    b.Navigation("Chats");
-
                     b.Navigation("Moves");
                 });
 #pragma warning restore 612, 618

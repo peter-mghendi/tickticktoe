@@ -68,7 +68,7 @@ else
 @code
 {
     [Inject]
-    public IClipboardService Clipboard { get; set; }
+    public IClipboardService? Clipboard { get; set; }
     
     private HubConnection? _hubConnection;
     private Guid _gameId;
@@ -162,18 +162,13 @@ else
         await _hubConnection.StartAsync();
     }
 
-    // async Task Send(string message)
-    // {
-    //     if (_hubConnection is not null && _game is not null)
-    //     {
-    //         await _hubConnection.SendAsync("SendChat", _game.InviteLink, message);
-    //     }
-    // }
-
     async Task CopyGameId()
     {
-        await Clipboard.SetTextAsync(_gameId.ToString());
-        Snackbar.Add("Copied to clipboard.", Severity.Info);   
+        if (Clipboard is not null)
+        {
+            await Clipboard.SetTextAsync(_gameId.ToString());
+            Snackbar.Add("Copied to clipboard.", Severity.Info);
+        }
     }
 
     async Task CreateGame(string password)

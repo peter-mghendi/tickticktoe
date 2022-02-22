@@ -247,32 +247,6 @@ namespace TickTickToe.Web.Server.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Chats",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Text = table.Column<string>(type: "text", nullable: false),
-                    SenderId = table.Column<string>(type: "text", nullable: true),
-                    SentAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    GameId = table.Column<Guid>(type: "uuid", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Chats", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Chats_AspNetUsers_SenderId",
-                        column: x => x.SenderId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_Chats_Games_GameId",
-                        column: x => x.GameId,
-                        principalTable: "Games",
-                        principalColumn: "Id");
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Moves",
                 columns: table => new
                 {
@@ -335,16 +309,6 @@ namespace TickTickToe.Web.Server.Data.Migrations
                 table: "AspNetUsers",
                 column: "NormalizedUserName",
                 unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Chats_GameId",
-                table: "Chats",
-                column: "GameId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Chats_SenderId",
-                table: "Chats",
-                column: "SenderId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_DeviceCodes_DeviceCode",
@@ -424,9 +388,6 @@ namespace TickTickToe.Web.Server.Data.Migrations
 
             migrationBuilder.DropTable(
                 name: "AspNetUserTokens");
-
-            migrationBuilder.DropTable(
-                name: "Chats");
 
             migrationBuilder.DropTable(
                 name: "DeviceCodes");

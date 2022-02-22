@@ -13,6 +13,5 @@ public class Game
     public virtual ApplicationUser? Winner { get; set; } = null;
     public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
 
-    public virtual IList<Chat> Chats { get; set; } = new List<Chat>();
     public virtual IList<Move> Moves { get; set; } = new List<Move>();
 }

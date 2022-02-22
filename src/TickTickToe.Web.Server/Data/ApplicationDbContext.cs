@@ -11,8 +11,6 @@ namespace TickTickToe.Web.Server.Data;
 
 public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
 {
-    public DbSet<Chat> Chats => Set<Chat>();
-
     public DbSet<Game> Games => Set<Game>();
 
     public DbSet<Move> Moves => Set<Move>();
@@ -41,7 +39,7 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
                     Cells = JsonSerializer.Deserialize<CellValue[][]>(json, options) ?? Grid.DefaultCells
                 },
                 new ValueComparer<Grid>(
-                    (g1, g2) => Compare(g1.Cells, g2.Cells),
+                    (g1, g2) => Compare(g1, g2),
                     g => g.GetHashCode(),
                     g => new() { Cells = Copy(g.Cells) }
                 ));
@@ -59,13 +57,13 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
             .WithMany(a => a.WonGames);
     }
 
-    private static bool Compare<T>(IReadOnlyList<T[]>? s1, IReadOnlyList<T[]>? s2)
+    private static bool Compare(Grid? g1, Grid? g2)
     {
-        if (s1 is null || s2 is null) return s1 is null;
+        if (g1 is null || g2 is null) return g1 is null;
 
-        for (var i = 0; i < s1.Count; i++)
+        for (var i = 0; i < g1.Cells.Length; i++)
         {
-            if (!s1[i].SequenceEqual(s2[i])) return false;
+            if (!g1.Cells[i].SequenceEqual(g2.Cells[i])) return false;
         }
 
         return true;
