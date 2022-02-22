@@ -2,7 +2,6 @@
 @using TickTickToe.Web.Client.Extensions
 @using Row = TickTickToe.Core.Row
 
-
 <MudPaper Class="d-flex align-center justify-center" Style="aspect-ratio: 1">
     @if (Value is CellValue.Empty)
     {
@@ -12,7 +11,7 @@
     }
     else
     {
-        <MudIcon Icon="@(Value.AsIcon())" Title="@(Value.ToString())" Class="@CellColor"/>
+        <MudIcon Icon="@(Value.AsIcon())" Title="@(Value.ToString())"  Style="@($"color:{CellColor};")"/>
     }
 </MudPaper>
 
@@ -29,13 +28,13 @@
     
     [Parameter]
     public EventCallback<(Row, Column)> OnClick { get; set; }
-    
+
     private async Task OnButtonClicked() => await OnClick.InvokeAsync(Cell);
 
     private string CellColor => Value switch
     {
-        CellValue.Cross => "red-text",
-        CellValue.Nought => "black-text",
-        _ => "grey"
+        CellValue.Cross => "var(--mud-palette-error);",
+        CellValue.Nought =>"var(--mud-palette-text-primary);",
+        _ => "var(--mud-palette-text-disabled);"
         };
 }

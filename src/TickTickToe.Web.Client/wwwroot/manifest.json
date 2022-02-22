@@ -1,6 +1,6 @@
 {
-  "name": "TickTickToe.Web",
-  "short_name": "TickTickToe.Web",
+  "name": "TickTickToe",
+  "short_name": "TickTickToe",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#ffffff",
