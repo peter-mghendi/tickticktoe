@@ -11,7 +11,7 @@
         <MudText Typo="Typo.h5" Color="Color.Inherit">Tick! Tick! Toe</MudText>
         <MudSpacer />
         <MudMenu Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit">
-            <MudMenuItem>Toggle Theme</MudMenuItem>
+            <MudMenuItem OnClick="() => _isDarkMode = !_isDarkMode">Toggle Theme</MudMenuItem>
         </MudMenu>
     </MudAppBar>
     <NavMenu Open="_drawerOpen" />
