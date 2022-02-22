@@ -3,7 +3,7 @@ Real-time tic-tac-toe on Blazor Webassembly over ASP.NET 6 SignalR/websockets. O
 
 ## Solution structure
 
-The root of this repository contains a [Visual Studio solution (.sln)]() that has 5 projects:
+The root of this repository contains a [Visual Studio solution (.sln)](https://github.com/sixpeteunder/tickticktoe/blob/master/tickticktoe.sln) that has 5 projects:
 
 
 ### [TickTickToe.Cli](https://github.com/sixpeteunder/tickticktoe/tree/master/src/TickTickToe.Cli)
