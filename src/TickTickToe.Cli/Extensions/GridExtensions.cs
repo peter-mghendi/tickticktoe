@@ -3,12 +3,12 @@ using TickTickToe.Core;
 
 namespace TickTickToe.Cli.Extensions;
 
-public static class BoardExtensions
+public static class GridExtensions
 {
     private const string HorizontalDividers = "     |     |      \n";
     private const string VerticalDividers = "_____|_____|_____ \n";
 
-    public static string Render(this Board board)
+    public static string Render(this Grid grid)
     {
         var boardBuilder = new StringBuilder();
 
@@ -19,16 +19,18 @@ public static class BoardExtensions
         {
             foreach(var column in Enum.GetValues<Column>())
             {
-                values[current++] = board.Get(row, column).AsText();
+                values[current++] = grid.Get(row, column).AsText();
             }
         }
 
         boardBuilder.Append(HorizontalDividers);
         boardBuilder.Append(BuildRow(values[0..3]));
         boardBuilder.Append(VerticalDividers);
+        
         boardBuilder.Append(HorizontalDividers);
         boardBuilder.Append(BuildRow(values[3..6]));
         boardBuilder.Append(VerticalDividers);
+        
         boardBuilder.Append(HorizontalDividers);
         boardBuilder.Append(BuildRow(values[6..9]));
         boardBuilder.Append(HorizontalDividers);

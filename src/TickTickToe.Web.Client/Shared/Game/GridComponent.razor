@@ -1,0 +1,25 @@
+@using TickTickToe.Core
+@using Row = TickTickToe.Core.Row
+<MudGrid Spacing="2" Justify="Justify.Center"> 
+    @foreach (var row in Enum.GetValues<Row>())
+    {
+        foreach (var column in Enum.GetValues<Column>())
+        {
+            <MudItem xs="4">
+                <CellComponent Value="Grid.Get(row, column)" CurrentPlayer="CurrentPlayer" Cell="(row, column)" OnClick="OnCellSelected"/>
+            </MudItem>    
+        }
+    }
+</MudGrid>
+
+@code {
+
+    [Parameter]
+    public Grid Grid { get; set; } = new();
+    
+    [Parameter]
+    public CellValue CurrentPlayer { get; set; }
+    
+    [Parameter]
+    public EventCallback<(Row, Column)> OnCellSelected { get; set; }
+}

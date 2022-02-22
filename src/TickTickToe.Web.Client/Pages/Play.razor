@@ -1,0 +1,210 @@
+﻿@page "/play"
+@using Microsoft.AspNetCore.SignalR.Client
+@using Microsoft.AspNetCore.Authorization
+@using Blazored.SessionStorage
+@using TickTickToe.Core
+@using TickTickToe.Core.Models
+@using Row = TickTickToe.Core.Row
+@using System.Text.Json.Serialization
+@using TickTickToe.Web.Client.Services
+
+@attribute [Authorize]
+
+@implements IAsyncDisposable
+
+@inject IAuthorizationService AuthorizationService
+@inject AuthenticationStateProvider Authenticator
+@inject NavigationManager Navigator
+@inject IConfiguration Config
+@inject ISessionStorageService SessionStorage
+@inject ISnackbar Snackbar
+
+<PageTitle>Play</PageTitle>
+
+@if (_hubConnection?.State != HubConnectionState.Connected)
+{
+    <MudText Typo="Typo.h5" Class="pa-4 my-4">You are not connected to a server.</MudText>
+    <MudText Typo="Typo.h6" Class="pa-4 mb-4">If this message persists, reload this page to establish a connection.</MudText>
+}
+else if (_gameId == Guid.Empty)
+{
+    <JoinUI OnJoin="JoinGame" OnCreate="CreateGame"/>
+}
+else
+{
+    <MudGrid Class="my-8" Spacing="2">
+        <MudItem xs="12">
+            <MudPaper Class="d-flex flex-column align-center justify-center mud-width-full py-4">
+                <MudText Typo="Typo.h4" Class="black-text">Tick!Tick!Toe!</MudText>
+                <MudText Typo="Typo.h6" Class="grey-text">Game #@(_gameId.ToString())</MudText>
+                <span>
+                    <MudIconButton Icon="@Icons.Outlined.ContentCopy" Title="Copy game ID" OnClick="CopyGameId" Class="blue-text" aria-label="leave game" />
+                    <MudIconButton Icon="@Icons.Outlined.ExitToApp" Title="Leave game" OnClick="LeaveGame" Class="red-text" aria-label="leave game" />
+                </span>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="6">
+            <MudPaper Class="d-flex flex-column align-center justify-center mud-width-full py-4">
+                <MudIcon Icon="@Icons.Outlined.Clear" Title="Cross" Class="red-text" Size="Size.Large"/>
+                <MudText Typo="Typo.body1" Class="grey-text">@_playerOneId</MudText>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="6">
+            <MudPaper Class="d-flex flex-column align-center justify-center mud-width-full py-4">
+                <MudIcon Icon="@Icons.Outlined.Circle" Title="Nought" Class="black-text" Size="Size.Large"/>
+                <MudText Typo="Typo.body1" Class="grey-text">@(_playerTwoId ?? "Waiting...")</MudText>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+
+    @if (_playerTwoId is not null)
+    {
+        <MudContainer MaxWidth="MaxWidth.ExtraSmall">
+            <GridComponent Grid="_grid" CurrentPlayer="CurrentPlayer" OnCellSelected="PerformTurn"/>
+        </MudContainer>
+    }
+}
+
+@code
+{
+    [Inject]
+    public IClipboardService? Clipboard { get; set; }
+    
+    private HubConnection? _hubConnection;
+    private Guid _gameId;
+    private Grid _grid = new();
+
+    private string? _userId;
+    private string? _playerOneId;
+    private string? _playerTwoId;
+
+    private CellValue CurrentPlayer => _userId == _playerOneId ? CellValue.Cross : CellValue.Nought;
+
+    private class Item
+    {
+        [JsonPropertyName("access_token")]
+        public string? AccessToken { get; set; }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+    // Get username from AuthenticationStateProvider
+        var authState = await Authenticator.GetAuthenticationStateAsync();
+        _userId = authState?.User.Identity?.Name;
+
+        _hubConnection = new HubConnectionBuilder()
+            .WithUrl(Navigator.ToAbsoluteUri("/gamehub"), options =>
+            {
+                options.AccessTokenProvider = async () =>
+                {
+    // TODO: Don't hard-code this.
+                    var key = "oidc.user:https://localhost:7067:TickTickToe.Web.Client";
+                    var item = await SessionStorage.GetItemAsync<Item>(key);
+                    return item.AccessToken;
+                };
+            })
+            .Build();
+
+        _hubConnection.On<Guid>("AddAsPlayerOne", gameId =>
+        {
+            _playerOneId = _userId;
+            _gameId = gameId;
+            StateHasChanged();
+        });
+
+        _hubConnection.On<string, Guid>("AddAsPlayerTwo", (playerOneId, gameId) =>
+        {
+            _playerOneId = playerOneId;
+            _playerTwoId = _userId;
+            _gameId = gameId;
+            StateHasChanged();
+        });
+
+        _hubConnection.On<string>("AddPlayerTwo", userId =>
+        {
+            _playerTwoId = userId;
+            Snackbar.Add("The game has started! It is your turn.", Severity.Info);
+            StateHasChanged();
+        });
+
+        _hubConnection.On<string?>("EndGame", async winner =>
+        {
+            Snackbar.Add(winner is null ? "Game ended in a draw!" : $"{winner} won this game!", Severity.Info);
+            await LeaveGame();
+            StateHasChanged();
+        });
+
+        _hubConnection.On<SystemMessage>("ReceiveSystemMessage", message =>
+        {
+            var severity = message.Severity switch
+            {
+                SystemMessage.MessageSeverity.Error => Severity.Error,
+                SystemMessage.MessageSeverity.Info => Severity.Info,
+                SystemMessage.MessageSeverity.Success => Severity.Success,
+                SystemMessage.MessageSeverity.Warning => Severity.Warning,
+                _ => throw new ArgumentException("Invalid message type.", nameof(SystemMessage.MessageSeverity))
+                };
+            Snackbar.Add(message.Text, severity);
+        });
+
+        _hubConnection.On("RemoveFromGame", () =>
+        {
+            _gameId = Guid.Empty;
+            StateHasChanged();
+        });
+
+        _hubConnection.On<Row, Column, CellValue>("SetGridValue", (row, column, value) =>
+        {
+            _grid.Set(row, column, value);
+            StateHasChanged();
+        });
+
+        await _hubConnection.StartAsync();
+    }
+
+    async Task CopyGameId()
+    {
+        if (Clipboard is not null)
+        {
+            await Clipboard.SetTextAsync(_gameId.ToString());
+            Snackbar.Add("Copied to clipboard.", Severity.Info);
+        }
+    }
+
+    async Task CreateGame(string password)
+    {
+        if (_hubConnection is not null)
+        {
+            await _hubConnection.SendAsync("CreateGame", password);
+        }
+    }
+
+    async Task JoinGame((Guid InviteLink, string Password) game)
+    {
+        if (_hubConnection is not null)
+        {
+            await _hubConnection.SendAsync("JoinGame", game.InviteLink, game.Password);
+        }
+    }
+
+    async Task LeaveGame()
+    {
+        if (_hubConnection is not null)
+        {
+            await _hubConnection.SendAsync("LeaveRoom", _gameId);
+        }
+    }
+
+    async Task PerformTurn((Row Row, Column Column) cell)
+    {
+        if (_hubConnection is not null)
+        {
+            await _hubConnection.SendAsync("PerformTurn", _gameId, cell.Row, cell.Column, CurrentPlayer);
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_hubConnection != null) await _hubConnection.DisposeAsync();
+    }
+}

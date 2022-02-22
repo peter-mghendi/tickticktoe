@@ -1,0 +1,76 @@
+@inject ISnackbar Snackbar
+
+<MudText Typo="Typo.h5" Class="pa-4 my-4">Join or create a game to play.</MudText>
+
+<MudPaper Class="pa-4 mb-4">
+    <MudTextField @bind-Value="_inviteLink" Label="Invite Link" Variant="Variant.Filled" Class="mb-4"></MudTextField>
+    <MudTextField @bind-Value="_invitePassword" Label="Password (If Applicable)" Variant="Variant.Filled" Class="mb-4"></MudTextField>
+    <MudButton Disabled="@Loading" OnClick="JoinGame" Variant="Variant.Filled" Color="Color.Primary">
+        @if (_joining)
+        {
+            <MudProgressCircular Class="ms-n1" Color="Color.Primary" Size="Size.Small" Indeterminate="true"/>
+            <MudText Class="ms-2">Joining Game</MudText>
+        }
+        else
+        {
+            <MudText>Join Game</MudText>
+        }
+    </MudButton>
+</MudPaper>
+
+<MudPaper Class="pa-4 mb-4">
+    <MudTextField @bind-Value="_createPassword" Label="Password (Optional)" Variant="Variant.Filled" Class="mb-4"></MudTextField>
+    <MudButton Disabled="@Loading" OnClick="CreateGame" Variant="Variant.Filled">
+        @if (_creating)
+        {
+            <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
+            <MudText Class="ms-2">Creating Game</MudText>
+        }
+        else
+        {
+            <MudText>Create Game</MudText>
+        }
+    </MudButton>
+</MudPaper>
+
+@code {
+    [Parameter]
+    public EventCallback<(Guid GameId, string Password)> OnJoin { get; set; }
+
+    [Parameter]
+    public EventCallback<string> OnCreate { get; set; }
+
+    private string? _inviteLink;
+    private string? _invitePassword;
+    private string? _createPassword;
+
+    private bool _joining = false;
+    private bool _creating = false;
+    private bool Loading => _joining || _creating;
+
+    private async Task JoinGame()
+    {
+        _joining = true;
+        if (string.IsNullOrWhiteSpace(_inviteLink))
+        {
+            _joining = false;
+            Snackbar.Add("Invite link cannot be empty.", Severity.Error);
+            return;
+        }
+        
+        if (!Guid.TryParse(_inviteLink, out var gameId))
+        {
+            _joining = false;
+            Snackbar.Add("Invalid invite link.", Severity.Error);
+            return;
+        }
+        
+        await OnJoin.InvokeAsync((gameId, _invitePassword  ?? string.Empty));
+    }
+
+    private async Task CreateGame()
+    { 
+        _creating = true;
+        await OnCreate.InvokeAsync(_createPassword);
+    }
+}

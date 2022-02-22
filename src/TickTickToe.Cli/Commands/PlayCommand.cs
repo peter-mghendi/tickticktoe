@@ -3,6 +3,9 @@ using Spectre.Console;
 using Spectre.Console.Cli;
 using TickTickToe.Cli.Extensions;
 using TickTickToe.Core;
+using Grid = TickTickToe.Core.Grid;
+
+namespace TickTickToe.Cli.Commands;
 
 public class PlayCommand : Command<PlayCommand.Settings>
 {
@@ -10,8 +13,8 @@ public class PlayCommand : Command<PlayCommand.Settings>
 
     public override int Execute([NotNull]CommandContext context, [NotNull]Settings settings)
     {
-        var board = new Board();
-        var render = new Markup(board.Render()).Centered();
+        var grid = new Grid();
+        var render = new Markup(grid.Render()).Centered();
 
         AnsiConsole.Live(render)
             .Start(ctx => 
@@ -19,28 +22,28 @@ public class PlayCommand : Command<PlayCommand.Settings>
                 ctx.Refresh();
                 
                 Thread.Sleep(TimeSpan.FromSeconds(1));
-                board.Set(Row.Top, Column.Start, Value.Cross);
-                render = new Markup(board.Render()).Centered();
+                grid.Set(Row.Top, Column.Start, CellValue.Cross);
+                render = new Markup(grid.Render()).Centered();
                 ctx.UpdateTarget(render);
 
                 Thread.Sleep(TimeSpan.FromSeconds(1));
-                board.Set(Row.Top, Column.End, Value.Nought);
-                render = new Markup(board.Render()).Centered();
+                grid.Set(Row.Top, Column.End, CellValue.Nought);
+                render = new Markup(grid.Render()).Centered();
                 ctx.UpdateTarget(render);
 
                 Thread.Sleep(TimeSpan.FromSeconds(1));
-                board.Set(Row.Middle, Column.Centre, Value.Cross);
-                render = new Markup(board.Render()).Centered();
+                grid.Set(Row.Middle, Column.Center, CellValue.Cross);
+                render = new Markup(grid.Render()).Centered();
                 ctx.UpdateTarget(render);
 
                 Thread.Sleep(TimeSpan.FromSeconds(1));
-                board.Set(Row.Bottom, Column.Start, Value.Nought);
-                render = new Markup(board.Render()).Centered();
+                grid.Set(Row.Bottom, Column.Start, CellValue.Nought);
+                render = new Markup(grid.Render()).Centered();
                 ctx.UpdateTarget(render);
 
                 Thread.Sleep(TimeSpan.FromSeconds(1));
-                board.Set(Row.Bottom, Column.End, Value.Cross);
-                render = new Markup(board.Render()).Centered();
+                grid.Set(Row.Bottom, Column.End, CellValue.Cross);
+                render = new Markup(grid.Render()).Centered();
                 ctx.UpdateTarget(render);
             });
 
