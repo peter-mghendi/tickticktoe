@@ -11,6 +11,7 @@ public partial class GameHub
         public Task AddAsPlayerOne(Guid gameId);
         public Task AddAsPlayerTwo(string playerOneId, Guid gameId);
         public Task AddPlayerTwo(string userId);
+        // TODO: Add reason(Normal, OpponentLeft, OpponentDisconnected)
         public Task EndGame(string? winner);
         public Task ReceiveSystemMessage(SystemMessage message);
         public Task RemoveFromGame();

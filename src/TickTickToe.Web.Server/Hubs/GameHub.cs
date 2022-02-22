@@ -45,7 +45,6 @@ public partial class GameHub : Hub<GameHub.IGameClient>
         }
 
         await _dbContext.Games.AddAsync(game);
-        // user.CreatedGames.Add(game);
 
         // Add creator to game
         await Groups.AddToGroupAsync(Context.ConnectionId, game.Id.ToString());
@@ -182,13 +181,21 @@ public partial class GameHub : Hub<GameHub.IGameClient>
         var user = await _userManager.FindByIdAsync(Context.UserIdentifier);
         var game = (await _dbContext.Games.FindAsync(gameId))!;
         
+        // Stop here to explicitly load players and winner
         await _dbContext.Entry(game).Reference(g => g.PlayerOne).LoadAsync();
         await _dbContext.Entry(game).Reference(g => g.PlayerTwo).LoadAsync();
         await _dbContext.Entry(game).Reference(g => g.Winner).LoadAsync();
         
         // Check game status
-        if (game.Winner is null)
+        if (game.PlayerTwo is null)
         {
+            // No consequences. Nuke everything.
+            _dbContext.Games.Remove(game);
+            await Clients.Caller.EndGame(null);
+        }
+        else if (game.Winner is null)
+        {
+            // A few consequences. Nuke some of the things. Tactfully.
             var message = new SystemMessage
             {
                 Text = $"{user.Email} has left the game.",
