@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
-using System.Text.Json.Serialization;
 using IdentityModel.Client;
 using Spectre.Console.Cli;
+using TickTickToe.Cli.Commands;
 
 var response = await RequestTokenAsync();
 Console.WriteLine("Token obtained. Press any key to continue.");

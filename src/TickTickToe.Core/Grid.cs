@@ -6,67 +6,16 @@ namespace TickTickToe.Core;
 
 public record class Grid
 {
-    private const int Size = 3;
-    private readonly CellValue[,] _cells = new CellValue[Size, Size];
+    public const int Size = 3;
 
-    #region Manually setting values
+    public CellValue[][] Cells { get; init; } = DefaultCells;
 
-    public CellValue TopStart
+    public static CellValue[][] DefaultCells =
     {
-        get => _cells[(int) Top, (int) Start];
-        set => _cells[(int) Top, (int) Start] = value;
-    }
-
-    public CellValue TopCenter
-    {
-        get => _cells[(int) Top, (int) Center];
-        set => _cells[(int) Top, (int) Center] = value;
-    }
-
-    public CellValue TopEnd
-    {
-        get => _cells[(int) Top, (int) End];
-        set => _cells[(int) Top, (int) End] = value;
-    }
-
-    public CellValue MiddleStart
-    {
-        get => _cells[(int) Middle, (int) Start];
-        set => _cells[(int) Middle, (int) Start] = value;
-    }
-
-    public CellValue MiddleCenter
-    {
-        get => _cells[(int) Middle, (int) Center];
-        set => _cells[(int) Middle, (int) Center] = value;
-    }
-
-    public CellValue MiddleEnd
-    {
-        get => _cells[(int) Middle, (int) End];
-        set => _cells[(int) Middle, (int) End] = value;
-    }
-
-    public CellValue BottomStart
-    {
-        get => _cells[(int) Bottom, (int) Start];
-        set => _cells[(int) Bottom, (int) Start] = value;
-    }
-
-    public CellValue BottomCenter
-    {
-        get => _cells[(int) Bottom, (int) Center];
-        set => _cells[(int) Bottom, (int) Center] = value;
-    }
-
-    public CellValue BottomEnd
-    {
-        get => _cells[(int) Bottom, (int) End];
-        set => _cells[(int) Bottom, (int) End] = value;
-    }
-
-    #endregion
-
+        new[] {Empty, Empty, Empty},
+        new[] {Empty, Empty, Empty},
+        new[] {Empty, Empty, Empty},
+    };
 
     public Grid()
     {
@@ -76,9 +25,12 @@ public record class Grid
     {
         var blanks = 0;
 
-        foreach (var cell in _cells)
+        foreach (var row in Cells)
         {
-            if (cell is Empty) ++blanks;
+            foreach (var cell in row)
+            {
+                if (cell is Empty) ++blanks;
+            }
         }
 
         return blanks;
@@ -86,9 +38,12 @@ public record class Grid
 
     public bool IsFull()
     {
-        foreach (var cell in _cells)
+        foreach (var row in Cells)
         {
-            if (cell is Empty) return false;
+            foreach (var cell in row)
+            {
+                if (cell is Empty) return false;
+            }
         }
 
         return true;
@@ -96,61 +51,70 @@ public record class Grid
 
     public bool IsWon()
     {
+        #region Values
+
+        var topStart = Cells[(int) Top][(int) Start]; // 0
+        var topCenter = Cells[(int) Top][(int) Center]; // 1
+        var topEnd = Cells[(int) Top][(int) End]; // 2
+        var middleStart = Cells[(int) Middle][(int) Start]; // 3
+        var middleCenter = Cells[(int) Middle][(int) Center]; // 4
+        var middleEnd = Cells[(int) Middle][(int) End]; // 5
+        var bottomStart = Cells[(int) Bottom][(int) Start]; // 6
+        var bottomCenter = Cells[(int) Bottom][(int) Center]; // 7
+        var bottomEnd = Cells[(int) Bottom][(int) End]; // 8
+
+        #endregion
+
         #region Horizontal Winning Condtions
 
-        if (EqualAndNotNull(TopStart, TopCenter, TopEnd)) return true; // Top row
-        if (EqualAndNotNull(MiddleStart, MiddleCenter, MiddleEnd)) return true; // Middle row
-        if (EqualAndNotNull(BottomStart, BottomCenter, BottomEnd)) return true; // Bottom row
+        if (EqualAndNotEmpty(topStart, topCenter, topEnd)) return true; // Top row
+        if (EqualAndNotEmpty(middleStart, middleCenter, middleEnd)) return true; // Middle row
+        if (EqualAndNotEmpty(bottomStart, bottomCenter, bottomEnd)) return true; // Bottom row
 
         #endregion
 
         #region Vertical Winning Condtions
 
-        if (EqualAndNotNull(TopStart, MiddleStart, BottomStart)) return true; // Start column
-        if (EqualAndNotNull(TopCenter, MiddleCenter, BottomCenter)) return true; // Centre column
-        if (EqualAndNotNull(TopEnd, MiddleEnd, BottomEnd)) return true; // End column
+        if (EqualAndNotEmpty(topStart, middleStart, bottomStart)) return true; // Start column
+        if (EqualAndNotEmpty(topCenter, middleCenter, bottomCenter)) return true; // Centre column
+        if (EqualAndNotEmpty(topEnd, middleEnd, bottomEnd)) return true; // End column
 
         #endregion
 
         #region Diagonal Winning Conditions
 
-        if (EqualAndNotNull(TopStart, MiddleCenter, BottomEnd)) return true; // LTR diagonal
-        if (EqualAndNotNull(TopEnd, MiddleCenter, BottomStart)) return true; // RTL diagonal
+        if (EqualAndNotEmpty(topStart, middleCenter, bottomEnd)) return true; // LTR diagonal
+        if (EqualAndNotEmpty(topEnd, middleCenter, bottomStart)) return true; // RTL diagonal
 
         #endregion
 
         return false;
     }
 
-    public void Reset() => Array.Clear(_cells);
+    public void Reset() => Array.Clear(Cells);
 
-    public CellValue Get(Row row, Column column) => _cells[(int) row, (int) column];
+    public CellValue Get(Row row, Column column) => Cells[(int) row][(int) column];
 
     public void Set(Row row, Column column, CellValue cellValue)
     {
-        if (_cells[(int) row, (int) column] is not Empty)
+        if (Cells[(int) row][(int) column] is not Empty)
         {
             throw new InvalidOperationException("You cannot overwrite a previously set value.");
         }
 
-        _cells[(int) row, (int) column] = cellValue;
+        Cells[(int) row][(int) column] = cellValue;
     }
 
-    // TODO: Redo
-    private static bool EqualAndNotNull(params CellValue[] values)
+    private static bool EqualAndNotEmpty(params CellValue[] values)
     {
-        // Early exit
-        if (values.Length <= 1) return true;
-
         // Iterate
         for (int i = 1; i < values.Length; i++)
         {
             if (values[i] is Empty) return false;
-            if (values[i - 1] is Empty) return false;
             if (values[i] != values[i - 1]) return false;
         }
 
-        // No luck
+        // We have a winner
         return true;
     }
 }

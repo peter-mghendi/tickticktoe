@@ -2,7 +2,6 @@ using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.AspNetCore.SignalR.Protocol;
 using Microsoft.EntityFrameworkCore;
 using TickTickToe.Core;
 using TickTickToe.Core.Models;
@@ -163,10 +162,58 @@ public partial class GameHub : Hub<GameHub.IGameClient>
         game.Grid.Set(row, column, value);
         game.Moves.Add(move);
         await Clients.Group(gameId.ToString()).SetGridValue(row, column, value);
+        
+        // Game end conditions
+        if (game.Grid.IsWon())
+        {
+            game.Winner = user;
+            await Clients.Group(gameId.ToString()).EndGame(winner: user.Email);
+        }
+        else if (game.Grid.IsFull())
+        {
+            await Clients.Group(gameId.ToString()).EndGame(winner: null);
+        }
+        
+        await _dbContext.SaveChangesAsync();
+    }
+    
+    public async Task LeaveRoom(Guid gameId)
+    {
+        var user = await _userManager.FindByIdAsync(Context.UserIdentifier);
+        var game = (await _dbContext.Games.FindAsync(gameId))!;
+        
+        await _dbContext.Entry(game).Reference(g => g.PlayerOne).LoadAsync();
+        await _dbContext.Entry(game).Reference(g => g.PlayerTwo).LoadAsync();
+        await _dbContext.Entry(game).Reference(g => g.Winner).LoadAsync();
+        
+        // Check game status
+        if (game.Winner is null)
+        {
+            var message = new SystemMessage
+            {
+                Text = $"{user.Email} has left the game.",
+                Severity = SystemMessage.MessageSeverity.Info
+            };
+            await Clients.Caller.ReceiveSystemMessage(message);
+            
+            game.Winner = user.Id == game.PlayerOne.Id ? game.PlayerTwo! : game.PlayerOne;
+            message = new SystemMessage
+            {
+                Text = $"{game.Winner.Email} wins by default.",
+                Severity = SystemMessage.MessageSeverity.Info
+            };
+            await Clients.Caller.ReceiveSystemMessage(message);
+
+            await Clients.OthersInGroup(gameId.ToString()).EndGame(winner: game.Winner!.Email);
+        }
+
+        // Remove player from room
+        await Groups.RemoveFromGroupAsync(Context.ConnectionId, game.Id.ToString());
+        await Clients.Caller.RemoveFromGame();
         await _dbContext.SaveChangesAsync();
     }
 
-    private bool IsValidTurn(Game game, ApplicationUser currentUser)
+    private static bool IsValidTurn(Game game, ApplicationUser currentUser)
     {
         if (game.Moves.Count == 0)
         {

@@ -11,7 +11,9 @@ public partial class GameHub
         public Task AddAsPlayerOne(Guid gameId);
         public Task AddAsPlayerTwo(string playerOneId, Guid gameId);
         public Task AddPlayerTwo(string userId);
+        public Task EndGame(string? winner);
         public Task ReceiveSystemMessage(SystemMessage message);
+        public Task RemoveFromGame();
         public Task SetGridValue(Row row, Column column, CellValue value);
     }
 }

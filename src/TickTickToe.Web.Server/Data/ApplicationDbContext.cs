@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.ApiAuthorization.IdentityServer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Duende.IdentityServer.EntityFramework.Options;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using TickTickToe.Core;
 using TickTickToe.Web.Server.Models;
 
@@ -34,9 +35,16 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
         builder.Entity<Game>()
             .Property(g => g.Grid)
             .HasConversion(
-                grid => JsonSerializer.Serialize(grid, options),
-                json => JsonSerializer.Deserialize<Grid>(json, options) ?? new()
-            );
+                grid => JsonSerializer.Serialize(grid.Cells, options),
+                json => new()
+                {
+                    Cells = JsonSerializer.Deserialize<CellValue[][]>(json, options) ?? Grid.DefaultCells
+                },
+                new ValueComparer<Grid>(
+                    (g1, g2) => Compare(g1.Cells, g2.Cells),
+                    g => g.GetHashCode(),
+                    g => new() { Cells = Copy(g.Cells) }
+                ));
 
         builder.Entity<Game>()
             .HasOne(g => g.PlayerOne)
@@ -49,5 +57,34 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
         builder.Entity<Game>()
             .HasOne(g => g.Winner)
             .WithMany(a => a.WonGames);
+    }
+
+    private static bool Compare<T>(IReadOnlyList<T[]>? s1, IReadOnlyList<T[]>? s2)
+    {
+        if (s1 is null || s2 is null) return s1 is null;
+
+        for (var i = 0; i < s1.Count; i++)
+        {
+            if (!s1[i].SequenceEqual(s2[i])) return false;
+        }
+
+        return true;
+    }
+
+    private static T[][] Copy<T>(IReadOnlyList<T[]> s)
+    {
+        var copy = new T[s.Count][];
+
+        for (var i = 0; i < s.Count; i++)
+        {
+            var row = s[i];
+            copy[i] = new T[row.Length];
+            for (int j = 0; j < row.Length; j++)
+            {
+                copy[i][j] = row[j];
+            }
+        }
+
+        return copy;
     }
 }

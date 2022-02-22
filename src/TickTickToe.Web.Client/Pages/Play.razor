@@ -9,6 +9,8 @@
 
 @attribute [Authorize]
 
+@implements IAsyncDisposable
+
 @inject IAuthorizationService AuthorizationService
 @inject AuthenticationStateProvider Authenticator
 @inject NavigationManager Navigator
@@ -53,7 +55,7 @@ else
     @if (_playerTwoId is not null)
     {
         <MudContainer MaxWidth="MaxWidth.ExtraSmall">
-            <GridComponent Grid="_grid" CurrentPlayer="_currentPlayer" OnCellSelected="PerformTurn"/>
+            <GridComponent Grid="_grid" CurrentPlayer="CurrentPlayer" OnCellSelected="PerformTurn"/>
         </MudContainer>
     }
 }
@@ -68,7 +70,7 @@ else
     private string? _playerOneId;
     private string? _playerTwoId;
 
-    private CellValue _currentPlayer => _userId == _playerOneId ? CellValue.Cross : CellValue.Nought; 
+    private CellValue CurrentPlayer => _userId == _playerOneId ? CellValue.Cross : CellValue.Nought;
 
     private class Item
     {
@@ -116,7 +118,14 @@ else
             Snackbar.Add("The game has started! It is your turn.", Severity.Info);
             StateHasChanged();
         });
-        
+
+        _hubConnection.On<string?>("EndGame", async winner =>
+        {
+            Snackbar.Add(winner is null ? "Game ended in a draw!" : $"{winner} won this game!", Severity.Info);
+            await LeaveRoom();
+            StateHasChanged();
+        });
+
         _hubConnection.On<SystemMessage>("ReceiveSystemMessage", message =>
         {
             var severity = message.Severity switch
@@ -129,7 +138,13 @@ else
                 };
             Snackbar.Add(message.Text, severity);
         });
-        
+
+        _hubConnection.On("RemoveFromGame", () =>
+        {
+            _gameId = Guid.Empty;
+            StateHasChanged();
+        });
+
         _hubConnection.On<Row, Column, CellValue>("SetGridValue", (row, column, value) =>
         {
             _grid.Set(row, column, value);
@@ -163,25 +178,24 @@ else
         }
     }
 
+    async Task LeaveRoom()
+    {
+        if (_hubConnection is not null)
+        {
+            await _hubConnection.SendAsync("LeaveRoom", _gameId);
+        }
+    }
+
     async Task PerformTurn((Row Row, Column Column) cell)
     {
         if (_hubConnection is not null)
         {
-            await _hubConnection.SendAsync("PerformTurn", _gameId, cell.Row, cell.Column, _currentPlayer);
+            await _hubConnection.SendAsync("PerformTurn", _gameId, cell.Row, cell.Column, CurrentPlayer);
         }
     }
 
-    // async Task LeaveGame()
-    // {
-    //     if (_hubConnection is not null && _game is not null)
-    //     {
-    //         await _hubConnection.SendAsync("LeaveGame", _game.InviteLink);
-    //     }
-    // }
-    //
-    // public async ValueTask DisposeAsync()
-    // {
-    //     if (_hubConnection != null) await _hubConnection.DisposeAsync();
-    // }
+    public async ValueTask DisposeAsync()
+    {
+        if (_hubConnection != null) await _hubConnection.DisposeAsync();
+    }
 }
-

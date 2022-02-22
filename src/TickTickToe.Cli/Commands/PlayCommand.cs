@@ -5,6 +5,8 @@ using TickTickToe.Cli.Extensions;
 using TickTickToe.Core;
 using Grid = TickTickToe.Core.Grid;
 
+namespace TickTickToe.Cli.Commands;
+
 public class PlayCommand : Command<PlayCommand.Settings>
 {
     public sealed class Settings : CommandSettings {}
@@ -20,27 +22,27 @@ public class PlayCommand : Command<PlayCommand.Settings>
                 ctx.Refresh();
                 
                 Thread.Sleep(TimeSpan.FromSeconds(1));
-                grid.TopStart = CellValue.Cross;
+                grid.Set(Row.Top, Column.Start, CellValue.Cross);
                 render = new Markup(grid.Render()).Centered();
                 ctx.UpdateTarget(render);
 
                 Thread.Sleep(TimeSpan.FromSeconds(1));
-                grid.TopEnd = CellValue.Nought;
+                grid.Set(Row.Top, Column.End, CellValue.Nought);
                 render = new Markup(grid.Render()).Centered();
                 ctx.UpdateTarget(render);
 
                 Thread.Sleep(TimeSpan.FromSeconds(1));
-                grid.MiddleCenter = CellValue.Cross;
+                grid.Set(Row.Middle, Column.Center, CellValue.Cross);
                 render = new Markup(grid.Render()).Centered();
                 ctx.UpdateTarget(render);
 
                 Thread.Sleep(TimeSpan.FromSeconds(1));
-                grid.BottomStart = CellValue.Nought;
+                grid.Set(Row.Bottom, Column.Start, CellValue.Nought);
                 render = new Markup(grid.Render()).Centered();
                 ctx.UpdateTarget(render);
 
                 Thread.Sleep(TimeSpan.FromSeconds(1));
-                grid.BottomEnd = CellValue.Cross;
+                grid.Set(Row.Bottom, Column.End, CellValue.Cross);
                 render = new Markup(grid.Render()).Centered();
                 ctx.UpdateTarget(render);
             });
