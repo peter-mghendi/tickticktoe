@@ -23,8 +23,8 @@
 
 @if (_hubConnection?.State != HubConnectionState.Connected)
 {
-    <MudText Typo="Typo.h5" Class="pa-4 my-4">You are not connected to a server.</MudText>
-    <MudText Typo="Typo.h6" Class="pa-4 mb-4">If this message persists, reload this page to establish a connection.</MudText>
+    <MudText Typo="Typo.h5" Class="pa-4 my-4" Style="color:var(--mud-palette-text-primary);">You are not connected to a server.</MudText>
+    <MudText Typo="Typo.h6" Class="pa-4 mb-4" Style="color:var(--mud-palette-text-secondary);">If this message persists, reload this page to establish a connection.</MudText>
 }
 else if (_gameId == Guid.Empty)
 {
@@ -35,23 +35,23 @@ else
     <MudGrid Class="my-8" Spacing="2">
         <MudItem xs="12">
             <MudPaper Class="d-flex flex-column align-center justify-center mud-width-full py-4">
-                <MudText Typo="Typo.h4" Class="black-text">Tick!Tick!Toe!</MudText>
-                <MudText Typo="Typo.h6" Class="grey-text">Game #@(_gameId.ToString())</MudText>
+                <MudText Typo="Typo.h4" Style="color:var(--mud-palette-text-primary);">Tick!Tick!Toe!</MudText>
+                <MudText Typo="Typo.h6" Style="color:var(--mud-palette-text-secondary);">Game #@(_gameId.ToString())</MudText>
                 <span>
-                    <MudIconButton Icon="@Icons.Outlined.ContentCopy" Title="Copy game ID" OnClick="CopyGameId" Class="blue-text" aria-label="leave game" />
-                    <MudIconButton Icon="@Icons.Outlined.ExitToApp" Title="Leave game" OnClick="LeaveGame" Class="red-text" aria-label="leave game" />
+                    <MudIconButton Icon="@Icons.Outlined.ContentCopy" Title="Copy game ID" OnClick="CopyGameId" Style="color:var(--mud-palette-info);" aria-label="leave game" />
+                    <MudIconButton Icon="@Icons.Outlined.ExitToApp" Title="Leave game" OnClick="LeaveGame" Style="color:var(--mud-palette-error);" aria-label="leave game" />
                 </span>
             </MudPaper>
         </MudItem>
-        <MudItem xs="6">
+        <MudItem xs="12" md="6">
             <MudPaper Class="d-flex flex-column align-center justify-center mud-width-full py-4">
-                <MudIcon Icon="@Icons.Outlined.Clear" Title="Cross" Class="red-text" Size="Size.Large"/>
+                <MudIcon Icon="@Icons.Outlined.Clear" Title="Cross" Style="color:var(--mud-palette-error);" Size="Size.Large"/>
                 <MudText Typo="Typo.body1" Class="grey-text">@_playerOneId</MudText>
             </MudPaper>
         </MudItem>
-        <MudItem xs="6">
+        <MudItem xs="12" md="6">
             <MudPaper Class="d-flex flex-column align-center justify-center mud-width-full py-4">
-                <MudIcon Icon="@Icons.Outlined.Circle" Title="Nought" Class="black-text" Size="Size.Large"/>
+                <MudIcon Icon="@Icons.Outlined.Circle" Title="Nought" Style="color:var(--mud-palette-text-primary);" Size="Size.Large"/>
                 <MudText Typo="Typo.body1" Class="grey-text">@(_playerTwoId ?? "Waiting...")</MudText>
             </MudPaper>
         </MudItem>
@@ -69,7 +69,7 @@ else
 {
     [Inject]
     public IClipboardService? Clipboard { get; set; }
-    
+
     private HubConnection? _hubConnection;
     private Guid _gameId;
     private Grid _grid = new();
@@ -107,6 +107,7 @@ else
 
         _hubConnection.On<Guid>("AddAsPlayerOne", gameId =>
         {
+            _grid = new();
             _playerOneId = _userId;
             _gameId = gameId;
             StateHasChanged();
