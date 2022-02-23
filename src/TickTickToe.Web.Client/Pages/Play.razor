@@ -92,13 +92,14 @@ else
         var authState = await Authenticator.GetAuthenticationStateAsync();
         _userId = authState?.User.Identity?.Name;
 
+        
         _hubConnection = new HubConnectionBuilder()
             .WithUrl(Navigator.ToAbsoluteUri("/gamehub"), options =>
             {
                 options.AccessTokenProvider = async () =>
                 {
-    // TODO: Don't hard-code this.
-                    var key = "oidc.user:https://localhost:7067:TickTickToe.Web.Client";
+                    var uri = Navigator.BaseUri.TrimEnd('/');
+                    var key = $"oidc.user:{uri}:TickTickToe.Web.Client";
                     var item = await SessionStorage.GetItemAsync<Item>(key);
                     return item.AccessToken;
                 };

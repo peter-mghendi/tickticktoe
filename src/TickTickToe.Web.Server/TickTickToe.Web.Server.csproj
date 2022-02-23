@@ -27,12 +27,9 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="6.0.2" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Data\Migrations" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Remove="Migrations\20220219064533_InitialCreate.Designer.cs" />
-  </ItemGroup>
+  <Target Name="PrePublishTarget" AfterTargets="Publish">
+    <Exec Command="dotnet tool restore" />
+    <Exec Command="dotnet ef database update" />
+  </Target>
 
 </Project>
